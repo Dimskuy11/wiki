@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Belanja Sederhana</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .product {
+      border: 1px solid #ccc;
+      padding: 20px;
+      margin: 10px;
+      display: inline-block;
+      width: 200px;
+      text-align: center;
+    }
+    .product img {
+      width: 100%;
+    }
+    .cart {
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .total {
+      font-weight: bold;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Selamat datang di Web Belanja Sederhana</h1>
+
+  <div class="product">
+    <img src="https://via.placeholder.com/150" alt="Produk 1">
+    <h3>Produk 1</h3>
+    <p>Harga: Rp 100.000</p>
+    <button onclick="addToCart('Produk 1', 100000)">Tambah ke Keranjang</button>
+  </div>
+
+  <div class="product">
+    <img src="https://via.placeholder.com/150" alt="Produk 2">
+    <h3>Produk 2</h3>
+    <p>Harga: Rp 150.000</p>
+    <button onclick="addToCart('Produk 2', 150000)">Tambah ke Keranjang</button>
+  </div>
+
+  <div class="product">
+    <img src="https://via.placeholder.com/150" alt="Produk 3">
+    <h3>Produk 3</h3>
+    <p>Harga: Rp 200.000</p>
+    <button onclick="addToCart('Produk 3', 200000)">Tambah ke Keranjang</button>
+  </div>
+
+  <div class="cart">
+    <h3>Keranjang Belanja</h3>
+    <ul id="cart-items"></ul>
+    <p class="total" id="total">Total: Rp 0</p>
+    <button onclick="checkout()">Bayar</button>
+  </div>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    // Simpan keranjang belanja dalam array
+    let cart = [];
+    let totalAmount = 0;
+
+    function addToCart(productName, productPrice) {
+      cart.push({ name: productName, price: productPrice });
+      totalAmount += productPrice;
+      updateCart();
+    }
+
+    function updateCart() {
+      // Update daftar produk di keranjang
+      const cartItems = document.getElementById('cart-items');
+      cartItems.innerHTML = '';
+      cart.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.name} - Rp ${item.price.toLocaleString()}`;
+        cartItems.appendChild(li);
+      });
+      // Update total
+      document.getElementById('total').textContent = `Total: Rp ${totalAmount.toLocaleString()}`;
+    }
+
+    // Fungsi untuk memulai pembayaran menggunakan Stripe
+    async function checkout() {
+      const stripe = Stripe('YOUR_STRIPE_PUBLIC_KEY'); // Ganti dengan Stripe public key kamu
+
+      // Buat checkout session (di sini kita buat sementara)
+      const session = await fetch('/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount: totalAmount }),
+      }).then(res => res.json());
+
+      // Arahkan pengguna ke halaman checkout Stripe
+      const { error } = await stripe.redirectToCheckout({
+        sessionId: session.id,
+      });
+
+      if (error) {
+        console.error(error);
+      }
+    }
+  </script>
+
+</body>
+</html>
